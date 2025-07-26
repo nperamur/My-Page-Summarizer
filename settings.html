@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<style>
+    input[type="text"] {
+      height: 10px;
+      width: 95%;
+      font-size: 16px;
+      padding: 8px;
+      border: 1px solid #888;
+      border-radius: 6px;
+    }
+
+
+<!--    .button-row {-->
+<!--      display: flex;-->
+<!--      justify-content: flex-end;-->
+<!--      gap: 10px;-->
+<!--      height: 30;-->
+<!--    }-->
+
+    .button-row {
+      display: flex;
+      justify-content: space-between; /* left and right edges */
+      align-items: center; /* vertically center if heights differ */
+      gap: 10px;
+    }
+
+    .button-row > div {
+      display: flex;
+      gap: 10px;
+    }
+
+    #error-message {
+        color:red;
+        display: none;
+    }
+
+
+    button {
+      border: 1px solid #888;
+      border-radius: 8px;
+      height: 25px;
+    }
+    button:hover {
+      background: #e6e6e6;
+      border-color: #999;
+    }
+    button:active {
+      background: #ddd;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+    }
+    button:disabled {
+      background-color: #ccc;
+      color: #666;
+      opacity: 0.6;
+    }
+
+
+
+
+
+</style>
+
+
+<div id="settings">
+    Enter your own Gemini API key to avoid shared rate limits in order to get a smoother experience. Get one here for free: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">https://aistudio.google.com/apikey</a>
+<br>
+
+<h3 id="apiKeyLabel">Gemini API Key:</h3>
+<input type="text" id="textbox" placeholder="Input API Key here">
+<br>
+    <span id="error-message">
+        Invalid API Key format! Your Gemini API Key should be in the regex format AIza[0-9A-Za-z\\-_]{35}$<br>
+    </span>
+<br>
+
+<div class="button-row">
+    <div>
+        <button id="saveButton">Save</button>
+        <button id="cancel">Cancel</button>
+    </div>
+    <button id="useDefaultButton">Use Default Key</button>
+
+</div>
+<br>
+
+
+<br>
+<br>
+
+<br>
+<br>
+<button id="logout" style="position: fixed; bottom: 0; margin-bottom: 2px;">Logout</button>
+<script src="settings.js"></script>
+</div>

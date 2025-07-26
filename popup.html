@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<style>
+    /* Set the size of the popup window */
+    body {
+      width: 400px;
+      height: 290px;
+      overflow: hidden; /* Optional: Prevents scrollbars */
+    }
+
+    /* Additional styling for the popup content */
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      margin-top: 50px;
+    }
+    ul {
+        padding-left: 20px;
+        margin-top: 4px;
+    }
+
+    ul li {
+        margin-bottom: 8px;  /* space between each bullet */
+    }
+</style>
+
+<head>
+    <title>Popup</title>
+    <script src="/dist/popup.bundle.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .send-icon {
+          position: absolute;
+          top: 21px;                /* move down */
+          left: 145px;               /* move right */
+          transform: scale(0.15);     /* resize */
+          stroke-width: 4;
+          pointer-events: none;
+        }
+
+        .message-bubble {
+            border-radius: 12px;
+            background-color: #E1F0FF;
+            padding: 6px;
+        }
+        .settings-icon {
+          position: absolute;
+
+          width: 12px;  /* make the image smaller */
+          height: 12px;
+          transform: scale(0.7);
+          vertical-align: middle; /* optional: aligns nicely with text */
+        }
+
+        .send-button {
+          position: absolute;
+          top: 265px;  /* adjust to where you want vertically */
+          left: 383px; /* adjust horizontally */
+          width: 20px;
+          height: 20px;
+          padding: 0;
+          box-sizing: border-box;
+          border: 1px solid #007bff; // for debug
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+          background-color: transparent;
+          transition: background 0.2s, border-color 0.2s;
+        }
+
+        .send-button:focus {
+            outline: none;`
+        }
+
+
+
+        #textBox {
+            width: 400px;   /* width of the text field */
+            height: 30px;   /* height of the text field */
+            font-size: 12px; /* text size inside the field */
+            border-radius: 8px;
+            scrollbar-width: none;
+            padding-left: 8px;
+            resize: none;
+            box-sizing: border-box;
+            border: none;
+            outline: none;
+        }
+
+        .text-box-border {
+            border: 1px solid #888;
+            width: 400px;   /* width of the text field */
+            height: 50px;   /* height of the text field */
+            border-radius: 8px;
+        }
+
+        .text-box-border:focus-within {
+            border-color: #000000; /* highlight border when focused */
+        }
+
+        .content-container {
+            width: 400px;          /* fixed width */
+            height: 200px;         /* fixed height */
+            overflow-y: auto;      /* vertical scroll if content overflows */
+            overflow-x: hidden;    /* hide horizontal scrollbar */
+            padding-bottom: 30px;
+        }
+
+        /* Center the loader */
+        .loader-container {
+          display: flex;
+          height: 0vh;
+          text-align: center;
+          background-color: #ffffff;
+        }
+
+        /* Create the spinning wheel */
+        .loader {
+          border: 3px solid #f3f3f3; /* Light gray */
+          border-top: 3px solid #3498db; /* Blue */
+          border-radius: 50%;
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          vertical-align: middle;
+          margin-left: 0.6em;
+          animation: spin 1s linear infinite;
+        }
+
+        /* Keyframes for spinning animation */
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+    </style>
+</head>
+<body>
+
+
+
+<div id="content" class="content-container"></div>
+
+<div class="text-box-border">
+<label for="textBox"></label><textarea maxlength="400" placeholder="Ask a follow-up..." id="textBox" rows="4" cols="40"></textarea>
+</div>
+
+<button id="button" class = "send-button"></button>
+<svg class = "send-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500px" height="500px"><path d="M 229.47 269.69 Q 243.46 241.71 257.449 269.69 L 285.429 325.649 Q 299.419 353.629 271.439 353.629 L 215.48 353.629 Q 187.5 353.629 201.49 325.649 Z" style="stroke: rgb(0, 0, 0); fill: rgba(216, 216, 216, 0); transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(0.000001, 1, -1, 0.000001, -1.494965, -28.031613)"></path><path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);" d="M 192.668 275.248 L 290.052 275.732"></path></svg>
+
+
+<script src="send-message.js"></script>
+
+</body>
+</html>

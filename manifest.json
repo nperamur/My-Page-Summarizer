@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "My Page Summarizer",
+  "description": "Summarize webpages with ease. Powered by Google Gemini. ",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "identity",
+    "contextMenus",
+    "scripting",
+    "offscreen",
+    "storage"
+  ],
+  "icons": {
+    "128": "icons/icon-128.png",
+    "36": "icons/icon-36.png"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp1EvZxvdUuM0GUnZ5eNCoHSoIP+uM00SVhGUFwtVK/+47gi/PWaxtGCuMvGKvEx767j9VTiGbqRrl/WiCLUwzVbanBl8qmOb2ymijog4HM7Gy9LnLY4k+sA65ZG9Pf8QmwchdNiGO8nkHiotlsQEsGt4fNyJ7KDcdk8YpIHLehABeF0BOstsmfLjvWOnwVtK2isFcij5TKg/3a4krNGWB8cyH+Cb7aalA9cr3lQOOqGT8f4bvljqnoH3XZ730uXYBaLL8KIeIiRb2IM+kYUSx3VWdmF45GAikmJCarbKQ3/YMJsg/J5ULtRDIAyXP12RGg0dp4B10jf8QA/6Z8YbPQIDAQAB",
+  "action": {
+    "default_title": "My Page Summarizer"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html", "settings.html", "sign-in.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  }
+}
