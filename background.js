@@ -634,7 +634,7 @@ function createInPagePopup(signedIn) {
     if (prevOverlay) prevOverlay.remove();
 
   chrome.runtime.sendMessage({action:"resetText"});
-  window.addEventListener('beforeunload', () => {
+  window.addEventListener('pagehide', () => {
     const popup = document.getElementById('popup');
     const overlay = document.getElementById('overlay');
     if (popup) popup.remove();
