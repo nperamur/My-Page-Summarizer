@@ -634,6 +634,12 @@ function createInPagePopup(signedIn) {
     if (prevOverlay) prevOverlay.remove();
 
   chrome.runtime.sendMessage({action:"resetText"});
+  window.addEventListener('beforeunload', () => {
+    const popup = document.getElementById('popup');
+    const overlay = document.getElementById('overlay');
+    if (popup) popup.remove();
+    if (overlay) overlay.remove();
+  });
 
 
   const loginScreen = document.createElement('iframe');
