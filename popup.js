@@ -2,34 +2,34 @@ import DOMPurify from 'dompurify';
 
 
 function send() {
-    chrome.runtime.sendMessage({type: 'GET_TEXT'}, (response) => {
-        const element = document.getElementById('content');
-        element.style.fontFamily = "'Inter', sans-serif";
-        element.style.color = "#333333";
+  chrome.runtime.sendMessage({type: 'GET_TEXT'}, (response) => {
+    const element = document.getElementById('content');
+    element.style.fontFamily = "'Inter', sans-serif";
+    element.style.color = "#333333";
 
 
-        const html = element.innerHTML;
-        const loaderSpanHTML = '<span class="loader"></span>';
-        const lastLoadingIndex = html.lastIndexOf('loading' + loaderSpanHTML);
+    const html = element.innerHTML;
+    const loaderSpanHTML = '<span class="loader"></span>';
+    const lastLoadingIndex = html.lastIndexOf('loading' + loaderSpanHTML);
 
-        if (lastLoadingIndex !== -1) {
-            // We preserve the content before and after "loading"
-            const before = html.substring(0, lastLoadingIndex);
-            const after = html.substring(lastLoadingIndex + ('loading' + loaderSpanHTML).length);
-            element.innerHTML = before + after;
-        }
+    if (lastLoadingIndex !== -1) {
+      // We preserve the content before and after "loading"
+      const before = html.substring(0, lastLoadingIndex);
+      const after = html.substring(lastLoadingIndex + ('loading' + loaderSpanHTML).length);
+      element.innerHTML = before + after;
+    }
 
-        if (response.text.endsWith('loading')) {
-            element.innerHTML += geminiMarkdownToHTML(response.text + loaderSpanHTML);
-        } else {
-            element.innerHTML += geminiMarkdownToHTML(response.text);
-        }
-    });
+    if (response.text.endsWith('loading')) {
+      element.innerHTML += geminiMarkdownToHTML(response.text + loaderSpanHTML);
+    } else {
+      element.innerHTML += geminiMarkdownToHTML(response.text);
+    }
+  });
 
 }
 
 function loadContent() {
-    chrome.runtime.sendMessage({action: 'loadContent'});
+  chrome.runtime.sendMessage({action: 'loadContent'});
 }
 
 
@@ -38,12 +38,12 @@ loadContent();
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "LOADING") {
-        send();
-    }
-    if (message.type === "UPDATED") {
-        send();
-    }
+  if (message.type === "LOADING") {
+    send();
+  }
+  if (message.type === "UPDATED") {
+    send();
+  }
 
 });
 

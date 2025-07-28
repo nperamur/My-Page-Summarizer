@@ -1,5 +1,5 @@
 const loginButton = document.getElementById('login');
 
 loginButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({type: 'startGoogleOAuth'});
+  chrome.runtime.sendMessage({type: 'startGoogleOAuth'});
 });

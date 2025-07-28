@@ -16,7 +16,7 @@ updateApiKey();
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'session' && changes.apiKey) {
-        updateApiKey();
+    updateApiKey();
   }
 });
 errorMessage.style.display = "none";
@@ -24,22 +24,22 @@ errorMessage.style.display = "none";
 
 
 function updateApiKey() {
-    chrome.storage.session.get(["apiKey"], (result) => {
-      currentApiKey = result.apiKey;
-      document.getElementById('textbox').value = currentApiKey;
-      if (!hasGeminiApiKeyFormat(textbox.value) && textbox.value !== "") {
-          errorMessage.style.display = "inline";
-      } else {
-          errorMessage.style.display = "none";
-      }
-      if (currentApiKey === "") {
-          useDefaultButton.disabled = true;
-          apiKeyLabel.textContent = apiKeyText + defaultKeyText;
-      } else {
-          useDefaultButton.disabled = false;
-          apiKeyLabel.textContent = apiKeyText + customKeyText;
-      }
-    });
+  chrome.storage.session.get(["apiKey"], (result) => {
+    currentApiKey = result.apiKey;
+    document.getElementById('textbox').value = currentApiKey;
+    if (!hasGeminiApiKeyFormat(textbox.value) && textbox.value !== "") {
+      errorMessage.style.display = "inline";
+    } else {
+      errorMessage.style.display = "none";
+    }
+    if (currentApiKey === "") {
+      useDefaultButton.disabled = true;
+      apiKeyLabel.textContent = apiKeyText + defaultKeyText;
+    } else {
+      useDefaultButton.disabled = false;
+      apiKeyLabel.textContent = apiKeyText + customKeyText;
+    }
+  });
 }
 
 
@@ -54,9 +54,9 @@ useDefaultButton.addEventListener('click', () => {
   btn.disabled = true;
   cancel.disabled = true;
   if (!hasGeminiApiKeyFormat(textbox.value) && textbox.value !== "") {
-      errorMessage.style.display = "inline";
+    errorMessage.style.display = "inline";
   } else {
-      errorMessage.style.display = "none";
+    errorMessage.style.display = "none";
   }
 
 });
@@ -69,11 +69,11 @@ btn.addEventListener('click', () => {
   btn.disabled = true;
   cancel.disabled = true;
   if (text === "") {
-      useDefaultButton.disabled = true;
-      apiKeyLabel.textContent = apiKeyText + defaultKeyText;
+    useDefaultButton.disabled = true;
+    apiKeyLabel.textContent = apiKeyText + defaultKeyText;
   } else {
-      useDefaultButton.disabled = false;
-      apiKeyLabel.textContent = apiKeyText + customKeyText;
+    useDefaultButton.disabled = false;
+    apiKeyLabel.textContent = apiKeyText + customKeyText;
   }
   currentApiKey = text;
 });
@@ -85,9 +85,9 @@ cancel.addEventListener('click', () => {
   cancel.disabled = true;
 
   if (!hasGeminiApiKeyFormat(textbox.value) && textbox.value !== "") {
-      errorMessage.style.display = "inline";
+    errorMessage.style.display = "inline";
   } else {
-      errorMessage.style.display = "none";
+    errorMessage.style.display = "none";
   }
 });
 
@@ -109,8 +109,8 @@ textbox.addEventListener('input', (e) => {
   }
 
   if (!hasGeminiApiKeyFormat(currentValue) && currentValue !== "") {
-      errorMessage.style.display = "inline";
-      btn.disabled = true;
+    errorMessage.style.display = "inline";
+    btn.disabled = true;
   } else {
       errorMessage.style.display = "none";
   }
@@ -121,7 +121,7 @@ textbox.addEventListener('input', (e) => {
 
 const logoutButton = document.getElementById("logout");
 logoutButton.addEventListener('click', () => {
-    chrome.runtime.sendMessage({type: 'signOut'})
+  chrome.runtime.sendMessage({type: 'signOut'})
 });
 
 

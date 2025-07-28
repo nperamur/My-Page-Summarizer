@@ -26,44 +26,44 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     writingToDatabase = true;
     const credential = GoogleAuthProvider.credential(null, message.accessToken);
     signInWithCredential(auth, credential).then(userCredential => {
-        const user = auth.currentUser;
-        if (user) {
-            const docRef = doc(db, "users", user.uid);
-            getDoc(docRef).then((document) => {
-                if (document.exists()) {
-                   // Document exists – update refreshToken only
-                  if (!message.refreshToken || typeof message.refreshToken !== "string") {
-                    console.log("cannot add refresh token to database");
-                    return;
-                  }
-                  updateDoc(docRef, {refreshToken: message.refreshToken}).then(() => {
-                      console.log("Refresh token updated.");
-                  }).catch((error) => {
-                      console.error("Error updating document:", error);
-                  });
-                  chrome.runtime.sendMessage({type: 'retrievedRefreshToken', refreshToken: document.data()["refreshToken"]});
-
-                } else {
-                  console.log("No such document!");
-                  if (!message.refreshToken || typeof message.refreshToken !== "string") {
-                    console.log("cannot add refresh token to database");
-                    return;
-                  }
-                  setDoc(docRef, {
-                      refreshToken: message.refreshToken,
-                      apiKey: ""
-                  }).then(() => {
-                      console.log("User document created.");
-                  }).catch((error) => {
-                      console.error("Error creating document:", error);
-                  });
-                  chrome.runtime.sendMessage({type: 'retrievedRefreshToken', refreshToken: message.refreshToken});
-                }
-              }).catch((error) => {
-                console.error("Error getting document:", error);
-              });
+      const user = auth.currentUser;
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        getDoc(docRef).then((document) => {
+          if (document.exists()) {
+             // Document exists – update refreshToken only
+            if (!message.refreshToken || typeof message.refreshToken !== "string") {
+              console.log("cannot add refresh token to database");
+              return;
             }
+            updateDoc(docRef, {refreshToken: message.refreshToken}).then(() => {
+                console.log("Refresh token updated.");
+            }).catch((error) => {
+                console.error("Error updating document:", error);
+            });
+            chrome.runtime.sendMessage({type: 'retrievedRefreshToken', refreshToken: document.data()["refreshToken"]});
+
+          } else {
+            console.log("No such document!");
+            if (!message.refreshToken || typeof message.refreshToken !== "string") {
+              console.log("cannot add refresh token to database");
+              return;
+            }
+            setDoc(docRef, {
+                refreshToken: message.refreshToken,
+                apiKey: ""
+            }).then(() => {
+                console.log("User document created.");
+            }).catch((error) => {
+                console.error("Error creating document:", error);
+            });
+            chrome.runtime.sendMessage({type: 'retrievedRefreshToken', refreshToken: message.refreshToken});
+          }
+        }).catch((error) => {
+          console.error("Error getting document:", error);
+        });
         }
+      }
     ).catch(error => {
       console.error("Sign in failed:", error);
     });

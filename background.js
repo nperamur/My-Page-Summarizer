@@ -42,7 +42,6 @@ async function closeOffscreenDocument() {
 let pageText = '';
 let latestRequestId = 0;
 
-//let text = "";
 
 
 chrome.offscreen.hasDocument().then(exists => {
@@ -52,169 +51,164 @@ chrome.offscreen.hasDocument().then(exists => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'GET_TEXT') {
-        sendResponse({text: pageText});
-    }
-    if (message.action === "loadContent") {
-      pageText = "loading";
-      chrome.runtime.sendMessage({type:"LOADING"});
-      chrome.storage.session.get("signedIn" , function(result) {
-          let signedIn = result.signedIn;
-          if (signedIn) {
-            latestRequestId++;
-            loadResponse(latestRequestId);
-          }
-      });
-
-    }
-
-    if (message.action === "resetText") {
-        pageText = "";
-    }
-
-    if (message.action === "follow-up") {
-        pageText = "\nloading";
-        chrome.runtime.sendMessage({type:"LOADING"});
-//        text += "\nUser's follow-up: \n" + message.content;
-        const key = "text";
-        const newEntry = "\nUser's follow-up: \n" + message.content;
-
-        chrome.storage.session.get([key], (result) => {
-          const previous = result[key] || "";
-          const updated = previous + newEntry;
-
-          chrome.storage.session.set({ [key]: updated });
-        });
-
+  if (message.type === 'GET_TEXT') {
+      sendResponse({text: pageText});
+  }
+  if (message.action === "loadContent") {
+    pageText = "loading";
+    chrome.runtime.sendMessage({type:"LOADING"});
+    chrome.storage.session.get("signedIn" , function(result) {
+      let signedIn = result.signedIn;
+      if (signedIn) {
         latestRequestId++;
         loadResponse(latestRequestId);
+      }
+    });
 
-    }
+  }
+
+  if (message.action === "resetText") {
+      pageText = "";
+  }
+
+  if (message.action === "follow-up") {
+    pageText = "\nloading";
+    chrome.runtime.sendMessage({type:"LOADING"});
+    const key = "text";
+    const newEntry = "\nUser's follow-up: \n" + message.content;
+
+    chrome.storage.session.get([key], (result) => {
+      const previous = result[key] || "";
+      const updated = previous + newEntry;
+
+      chrome.storage.session.set({ [key]: updated });
+    });
+
+    latestRequestId++;
+    loadResponse(latestRequestId);
+
+  }
 
 
-    if (message.action === "popup") {
-        chrome.storage.session.get("signedIn" , function(result) {
-            let signedIn = result.signedIn;
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-              const currentTabId = tabs[0].id;
-              if (tabs.length === 0) return;
-              chrome.storage.session.get(['touchedTabs'], (res) => {
-                  const tabsSet = new Set(res.touchedTabs || []);
-                  tabsSet.add(currentTabId);
-                  chrome.storage.session.set({ touchedTabs: [...tabsSet] });
-              });
-              const url = "Current Webpage Url:" + tabs[0].url;
+  if (message.action === "popup") {
+    chrome.storage.session.get("signedIn" , function(result) {
+      let signedIn = result.signedIn;
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const currentTabId = tabs[0].id;
+        if (tabs.length === 0) return;
+        chrome.storage.session.get(['touchedTabs'], (res) => {
+          const tabsSet = new Set(res.touchedTabs || []);
+          tabsSet.add(currentTabId);
+          chrome.storage.session.set({ touchedTabs: [...tabsSet] });
+        });
+        const url = "Current Webpage Url:" + tabs[0].url;
 
-              const key = "text";
-              chrome.storage.session.set({ [key]: url });
+        const key = "text";
+        chrome.storage.session.set({ [key]: url });
 
-              chrome.scripting.executeScript({
-                target: { tabId: currentTabId },
-                func: createInPagePopup,
-                args: [signedIn]
-              });
-
-            });
+        chrome.scripting.executeScript({
+          target: { tabId: currentTabId },
+          func: createInPagePopup,
+          args: [signedIn]
         });
 
-
-
-    }
-
-    if (message.type === 'signOut') {
-        pageText = "";
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs.length === 0) return;
-          const currentTabId = tabs[0].id;
-          // then do scripting.executeScript here
-          chrome.scripting.executeScript({
-                target: { tabId: currentTabId },
-                func: () => {
-                  const chatScreen = document.getElementById('chat');
-                  chatScreen.src = "";
-                  const settingsScreen = document.getElementById('settings');
-                  const loginScreen = document.getElementById("login");
-
-
-                  const settingsButton = document.getElementById("settings-button");
-                  const backButton = document.getElementById("back-button");
-                  loginScreen.style.display = "block";
-                  chatScreen.style.display = "none";
-                  settingsScreen.src = chrome.runtime.getURL('settings.html');
-                  settingsScreen.style.display = "none";
-                  settingsButton.style.display = "block";
-                  backButton.style.display = "none";
-
-
-                }
-            });
-        });
-
-    }
+      });
+    });
 
 
 
-    if (message.type === "signInStatus") {
-        chrome.storage.session.set({ signedIn: message.authState });
-    }
+  }
 
-    if (message.type === 'startGoogleOAuth') {
-        pageText = "";
-        try {
-            startGoogleOAuth().then(json => {
-//                chrome.storage.session.set({ refreshToken: json.refresh_token });
-                chrome.runtime.sendMessage({type: 'finishedGoogleAuth', refreshToken: json.refresh_token, accessToken: json.access_token});
-                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                  const currentTabId = tabs[0].id;
-                  if (tabs.length === 0) return;
-                  const url = tabs[0].url;
-//                  text = "Current Webpage Url: " + url;
-
-                  chrome.storage.session.set({ ["text"]:  "Current Webpage Url: " + url});
-
-                  chrome.scripting.executeScript({
-                    target: { tabId: currentTabId },
-                    func: () => {
-                        const chatScreen = document.getElementById('chat');
-                        chatScreen.src = chrome.runtime.getURL('popup.html');
-                        const settingsScreen = document.getElementById('settings');
-                        const loginScreen = document.getElementById("login");
-
-                        const settingsButton = document.getElementById("settings-button");
-                        const backButton = document.getElementById("back-button");
-
-                        loginScreen.style.display = "none";
-                        chatScreen.style.display = settingsButton.style.display;
-                        settingsScreen.style.display = backButton.style.display;
-                    }
-                  });
-
-                });
+  if (message.type === 'signOut') {
+    pageText = "";
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length === 0) return;
+      const currentTabId = tabs[0].id;
+      chrome.scripting.executeScript({
+        target: { tabId: currentTabId },
+        func: () => {
+          const chatScreen = document.getElementById('chat');
+          chatScreen.src = "";
+          const settingsScreen = document.getElementById('settings');
+          const loginScreen = document.getElementById("login");
 
 
+          const settingsButton = document.getElementById("settings-button");
+          const backButton = document.getElementById("back-button");
+          loginScreen.style.display = "block";
+          chatScreen.style.display = "none";
+          settingsScreen.src = chrome.runtime.getURL('settings.html');
+          settingsScreen.style.display = "none";
+          settingsButton.style.display = "block";
+          backButton.style.display = "none";
 
-            });
-        } catch (err) {
-            console.error(err);
+
         }
-    }
+      });
+    });
 
-    if (message.type === 'retrievedRefreshToken') {
-//        chrome.storage.session.set({ refreshToken: message.refreshToken });
-      let refreshToken = message.refreshToken;
-      exchangeRefreshTokenForAccessToken(refreshToken).then((json => {
-          let idToken = json.id_token;
-          chrome.storage.session.set({ idToken: idToken });
-          chrome.runtime.sendMessage({type: 'extendCurrentSession', id_token: idToken});
-          latestRequestId++;
-          sendRequestToGemini(idToken, latestRequestId);
+  }
 
-      }));
-    }
 
-    if (message.type === 'retrievedApiKey') {
-        chrome.storage.session.set({ apiKey: message.apiKey});
+
+  if (message.type === "signInStatus") {
+      chrome.storage.session.set({ signedIn: message.authState });
+  }
+
+  if (message.type === 'startGoogleOAuth') {
+    pageText = "";
+    try {
+      startGoogleOAuth().then(json => {
+        chrome.runtime.sendMessage({type: 'finishedGoogleAuth', refreshToken: json.refresh_token, accessToken: json.access_token});
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          const currentTabId = tabs[0].id;
+          if (tabs.length === 0) return;
+          const url = tabs[0].url;
+
+          chrome.storage.session.set({ ["text"]:  "Current Webpage Url: " + url});
+
+          chrome.scripting.executeScript({
+            target: { tabId: currentTabId },
+            func: () => {
+              const chatScreen = document.getElementById('chat');
+              chatScreen.src = chrome.runtime.getURL('popup.html');
+              const settingsScreen = document.getElementById('settings');
+              const loginScreen = document.getElementById("login");
+
+              const settingsButton = document.getElementById("settings-button");
+              const backButton = document.getElementById("back-button");
+
+              loginScreen.style.display = "none";
+              chatScreen.style.display = settingsButton.style.display;
+              settingsScreen.style.display = backButton.style.display;
+            }
+          });
+
+        });
+
+
+
+      });
+    } catch (err) {
+        console.error(err);
     }
+  }
+
+  if (message.type === 'retrievedRefreshToken') {
+    let refreshToken = message.refreshToken;
+    exchangeRefreshTokenForAccessToken(refreshToken).then((json => {
+      let idToken = json.id_token;
+      chrome.storage.session.set({ idToken: idToken });
+      chrome.runtime.sendMessage({type: 'extendCurrentSession', id_token: idToken});
+      latestRequestId++;
+      sendRequestToGemini(idToken, latestRequestId);
+
+    }));
+  }
+
+  if (message.type === 'retrievedApiKey') {
+    chrome.storage.session.set({ apiKey: message.apiKey});
+  }
 
 });
 
@@ -222,72 +216,64 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 
 async function loadResponse(id) {
-    let textContent = "";
+  let textContent = "";
+  chrome.storage.session.get(['idToken'], (result) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error getting idToken:', chrome.runtime.lastError);
+      return;
+    }
 
+    const idToken = result.idToken;
 
-
-
-    chrome.storage.session.get(['idToken'], (result) => {
-      if (chrome.runtime.lastError) {
-        console.error('Error getting idToken:', chrome.runtime.lastError);
-        return;
-      }
-
-      const idToken = result.idToken;
-
-      if (idToken) {
-         sendRequestToGeminiWithToken(idToken, id);
-      } else {
-        sendRequestToGeminiWithRefreshedToken();
-      }
-    });
-
-
+    if (idToken) {
+       sendRequestToGeminiWithToken(idToken, id);
+    } else {
+      sendRequestToGeminiWithRefreshedToken();
+    }
+  });
 
 }
 
 //sends request to gemini but refreshes when it receives a 401
 async function sendRequestToGeminiWithToken(idToken, id) {
-    let textContent = "";
+  let textContent = "";
 
-    const text = await new Promise((resolve) => {
-      chrome.storage.session.get(["text"], (result) => {
-        resolve(result["text"] || "");
-      });
+  const text = await new Promise((resolve) => {
+    chrome.storage.session.get(["text"], (result) => {
+      resolve(result["text"] || "");
     });
+  });
 
-    const requestBody = await buildGeminiRequestBody(text, idToken);
-    fetch("https://my-page-summarizer.nperamur.workers.dev/sendRequestToGemini", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(requestBody)
-    }).then(response => {
-        if (response.status != 200 && response.status != 401) {
-            textContent = "Something went wrong. There was an error in retrieving the response. Status code: " + response.status;
-//            text += "\n Your previous response: \n" + textContent;
-            if (latestRequestId === id) {
-                pageText = textContent;
-                chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
-                chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
-            }
+  const requestBody = await buildGeminiRequestBody(text, idToken);
+  fetch("https://my-page-summarizer.nperamur.workers.dev/sendRequestToGemini", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(requestBody)
+  }).then(response => {
+    if (response.status != 200 && response.status != 401) {
+      textContent = "Something went wrong. There was an error in retrieving the response. Status code: " + response.status;
+      if (latestRequestId === id) {
+        pageText = textContent;
+        chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
+        chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
+      }
 
-        } else if (response.status == 401) {
-            sendRequestToGeminiWithRefreshedToken();
-        } else {
-            response.json().then(myJson => {
-                textContent += myJson.candidates[0].content.parts[0].text;
-//                text += "\n Your previous response: \n" + textContent;
+    } else if (response.status == 401) {
+        sendRequestToGeminiWithRefreshedToken();
+    } else {
+      response.json().then(myJson => {
+        textContent += myJson.candidates[0].content.parts[0].text;
 
-                if (latestRequestId === id) {
-                    pageText = textContent;
-                    chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
-                    chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
-                }
-
-            });
+        if (latestRequestId === id) {
+            pageText = textContent;
+            chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
+            chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
         }
 
-    });
+      });
+    }
+
+  });
 }
 
 
@@ -315,46 +301,44 @@ function sendRequestToGeminiWithRefreshedToken() {
 
 //sends request to gemini but doesn't refresh if fails with 401
 async function sendRequestToGemini(idToken, id) {
-    let textContent = "";
-    const text = await new Promise((resolve) => {
-      chrome.storage.session.get(["text"], (result) => {
-        resolve(result["text"] || "");
+  let textContent = "";
+  const text = await new Promise((resolve) => {
+    chrome.storage.session.get(["text"], (result) => {
+      resolve(result["text"] || "");
+    });
+  });
+  const requestBody = await buildGeminiRequestBody(text, idToken);
+  fetch("https://my-page-summarizer.nperamur.workers.dev/sendRequestToGemini", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(requestBody)
+  }).then(response => {
+    if (response.status != 200) {
+      textContent = "Something went wrong. There was an error in retrieving the response. Status code: " + response.status;
+
+      if (latestRequestId === id) {
+        pageText = textContent;
+        chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
+        chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
+      }
+      response.json().then(myJson => {
+          console.log(myJson);
       });
-    });
-    const requestBody = await buildGeminiRequestBody(text, idToken);
-    fetch("https://my-page-summarizer.nperamur.workers.dev/sendRequestToGemini", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(requestBody)
-    }).then(response => {
-        if (response.status != 200) {
-            textContent = "Something went wrong. There was an error in retrieving the response. Status code: " + response.status;
-//            text += "\n Your previous response: \n" + textContent;
 
-            if (latestRequestId === id) {
-                pageText = textContent;
-                chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
-                chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
-            }
-            response.json().then(myJson => {
-                console.log(myJson);
-            });
+    } else {
+      response.json().then(myJson => {
+        textContent += myJson.candidates[0].content.parts[0].text;
 
-        } else {
-            response.json().then(myJson => {
-                textContent += myJson.candidates[0].content.parts[0].text;
-//                text += "\n Your previous response: \n" + textContent;
-
-                if (latestRequestId === id) {
-                    pageText = textContent;
-                    chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
-                    chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
-                }
-            });
+        if (latestRequestId === id) {
+          pageText = textContent;
+          chrome.storage.session.set({ ["text"]: text + "\n Your previous response: \n" + textContent });
+          chrome.runtime.sendMessage({type: 'UPDATED', text:textContent});
         }
+      });
+    }
 
 
-    });
+  });
 }
 
 
@@ -445,41 +429,41 @@ async function startGoogleOAuth() {
 
 
 async function exchangeCodeForTokens(code, codeVerifier) {
-    const response = await fetch("https://my-page-summarizer.nperamur.workers.dev/finishOauthFlow", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            code: code,
-            codeVerifier: codeVerifier
-        })
-    });
+  const response = await fetch("https://my-page-summarizer.nperamur.workers.dev/finishOauthFlow", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+        code: code,
+        codeVerifier: codeVerifier
+    })
+  });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
-    }
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+  }
 
-    const tokens = await response.json();
-    return tokens;
+  const tokens = await response.json();
+  return tokens;
 }
 
 
 async function exchangeRefreshTokenForAccessToken(refresh_token) {
-    const response = await fetch("https://my-page-summarizer.nperamur.workers.dev/refreshTokenExchange", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            refreshToken: refresh_token
-        })
-    });
+  const response = await fetch("https://my-page-summarizer.nperamur.workers.dev/refreshTokenExchange", {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+        refreshToken: refresh_token
+    })
+  });
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
-    }
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+  }
 
-    const tokens = await response.json();
-    return tokens;
+  const tokens = await response.json();
+  return tokens;
 }
 
 
@@ -498,19 +482,19 @@ chrome.contextMenus.removeAll(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === "highlightOption") {
     chrome.storage.session.get("signedIn", function(result) {
-        let signedIn = result.signedIn;
+      let signedIn = result.signedIn;
 //        text = info.selectionText;
-        chrome.storage.session.set({ ["text"]: info.selectionText });
-        chrome.storage.session.get(['touchedTabs'], (res) => {
-          const tabsSet = new Set(res.touchedTabs || []);
-          tabsSet.add(tab.id);
-          chrome.storage.session.set({ touchedTabs: [...tabsSet] });
-        });
-        chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: createInPagePopup,
-          args: [signedIn]
-        });
+      chrome.storage.session.set({ ["text"]: info.selectionText });
+      chrome.storage.session.get(['touchedTabs'], (res) => {
+        const tabsSet = new Set(res.touchedTabs || []);
+        tabsSet.add(tab.id);
+        chrome.storage.session.set({ touchedTabs: [...tabsSet] });
+      });
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: createInPagePopup,
+        args: [signedIn]
+      });
     });
 
 
@@ -564,23 +548,36 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 });
 
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  const { touchedTabs = [] } = await chrome.storage.session.get(['touchedTabs']);
+  if (touchedTabs.includes(tabId)) {
+    const updatedTabs = touchedTabs.filter(id => id !== tabId);
+    await chrome.storage.session.set({ touchedTabs: updatedTabs });
+  }
+});
+
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (!changeInfo.url) {
     return;
   }
 
-  try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: () => {
-        const popup   = document.getElementById('popup');
-        const overlay = document.getElementById('overlay');
-        if (popup)   popup.remove();
-        if (overlay) overlay.remove();
-      }
-    });
-  } catch (e) {
-    console.error('Failed to remove popup on tab update:', e);
+  const { touchedTabs = [] } = await chrome.storage.session.get([
+    'touchedTabs'
+  ]);
+  if (touchedTabs.includes(tabId)) {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: () => {
+          const popup   = document.getElementById('popup');
+          const overlay = document.getElementById('overlay');
+          if (popup)   popup.remove();
+          if (overlay) overlay.remove();
+        }
+      });
+    } catch (e) {
+      console.error('Failed to remove popup on tab update:', e);
+    }
   }
 });
 
@@ -591,6 +588,10 @@ chrome.windows.onFocusChanged.addListener(async (newWindowId) => {
     return;
   }
 
+  const { touchedTabs = [] } = await chrome.storage.session.get([
+      'touchedTabs'
+  ]);
+
   // Optionally await this if you need details about the new window
   const newWindow = await chrome.windows.get(newWindowId);
   if (!newWindow || newWindow.type !== "normal") {
@@ -599,7 +600,7 @@ chrome.windows.onFocusChanged.addListener(async (newWindowId) => {
 
   if (lastFocusedWindowId !== null && lastFocusedWindowId !== newWindowId) {
     const currentTabId = await getActiveTab(lastFocusedWindowId);
-    if (currentTabId !== undefined) {
+    if (currentTabId !== undefined && touchedTabs.includes(currentTabId)) {
       try {
         await chrome.scripting.executeScript({
           target: { tabId: currentTabId },
@@ -659,10 +660,6 @@ function createInPagePopup(signedIn) {
   `;
 
   overlay.id = 'overlay';
-//  overlay.onclick = () => {
-//    overlay.remove();
-//    popup.remove();
-//  };
 
   const popup = document.createElement('div');
   popup.id = 'popup';
@@ -724,24 +721,24 @@ function createInPagePopup(signedIn) {
 
 
 
-    let svg = `<svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="27" height="27" viewBox="-50 -50 356 356" xml:space="preserve">
-             <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
-                <path d="M 88.568 54.357 L 88.568 54.357 c -8.337 -3.453 -8.337 -15.262 0 -18.715 l 0 0 c 1.183 -0.49 1.745 -1.847 1.255 -3.03 l -4.369 -10.547 c -0.49 -1.183 -1.847 -1.745 -3.03 -1.255 l 0 0 c -8.337 3.453 -16.687 -4.897 -13.233 -13.233 l 0 0 c 0.49 -1.183 -0.072 -2.54 -1.255 -3.03 l -10.548 -4.37 c -1.183 -0.49 -2.54 0.072 -3.03 1.255 c -3.453 8.337 -15.262 8.337 -18.715 0 c -0.49 -1.183 -1.847 -1.745 -3.03 -1.255 L 22.065 4.547 c -1.183 0.49 -1.745 1.847 -1.255 3.03 c 3.453 8.337 -4.897 16.687 -13.234 13.234 c -1.183 -0.49 -2.54 0.072 -3.03 1.255 L 0.177 32.613 c -0.49 1.183 0.072 2.54 1.255 3.03 l 0 0 c 8.337 3.453 8.337 15.262 0 18.715 l 0 0 c -1.183 0.49 -1.745 1.847 -1.255 3.03 l 4.369 10.547 c 0.49 1.183 1.847 1.745 3.03 1.255 l 0 0 c 8.337 -3.453 16.687 4.897 13.233 13.234 l 0 0 c -0.49 1.183 0.072 2.54 1.255 3.03 l 10.547 4.369 c 1.183 0.49 2.54 -0.072 3.03 -1.255 l 0 0 c 3.453 -8.337 15.262 -8.337 18.715 0 l 0 0 c 0.49 1.183 1.847 1.745 3.03 1.255 l 10.547 -4.369 c 1.183 -0.49 1.745 -1.847 1.255 -3.03 l 0 0 c -3.453 -8.337 4.897 -16.687 13.234 -13.233 c 1.183 0.49 2.54 -0.072 3.03 -1.255 l 4.369 -10.547 C 90.313 56.204 89.751 54.848 88.568 54.357 z M 45 64.052 c -10.522 0 -19.052 -8.53 -19.052 -19.052 S 34.478 25.949 45 25.949 S 64.052 34.479 64.052 45 S 55.522 64.052 45 64.052 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(168,168,168); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
-             </g>
-             </svg>`
-    const settingsButton = document.createElement('button');
-    settingsButton.style.all = "initial";
+  let svg = `<svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="27" height="27" viewBox="-50 -50 356 356" xml:space="preserve">
+           <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+              <path d="M 88.568 54.357 L 88.568 54.357 c -8.337 -3.453 -8.337 -15.262 0 -18.715 l 0 0 c 1.183 -0.49 1.745 -1.847 1.255 -3.03 l -4.369 -10.547 c -0.49 -1.183 -1.847 -1.745 -3.03 -1.255 l 0 0 c -8.337 3.453 -16.687 -4.897 -13.233 -13.233 l 0 0 c 0.49 -1.183 -0.072 -2.54 -1.255 -3.03 l -10.548 -4.37 c -1.183 -0.49 -2.54 0.072 -3.03 1.255 c -3.453 8.337 -15.262 8.337 -18.715 0 c -0.49 -1.183 -1.847 -1.745 -3.03 -1.255 L 22.065 4.547 c -1.183 0.49 -1.745 1.847 -1.255 3.03 c 3.453 8.337 -4.897 16.687 -13.234 13.234 c -1.183 -0.49 -2.54 0.072 -3.03 1.255 L 0.177 32.613 c -0.49 1.183 0.072 2.54 1.255 3.03 l 0 0 c 8.337 3.453 8.337 15.262 0 18.715 l 0 0 c -1.183 0.49 -1.745 1.847 -1.255 3.03 l 4.369 10.547 c 0.49 1.183 1.847 1.745 3.03 1.255 l 0 0 c 8.337 -3.453 16.687 4.897 13.233 13.234 l 0 0 c -0.49 1.183 0.072 2.54 1.255 3.03 l 10.547 4.369 c 1.183 0.49 2.54 -0.072 3.03 -1.255 l 0 0 c 3.453 -8.337 15.262 -8.337 18.715 0 l 0 0 c 0.49 1.183 1.847 1.745 3.03 1.255 l 10.547 -4.369 c 1.183 -0.49 1.745 -1.847 1.255 -3.03 l 0 0 c -3.453 -8.337 4.897 -16.687 13.234 -13.233 c 1.183 0.49 2.54 -0.072 3.03 -1.255 l 4.369 -10.547 C 90.313 56.204 89.751 54.848 88.568 54.357 z M 45 64.052 c -10.522 0 -19.052 -8.53 -19.052 -19.052 S 34.478 25.949 45 25.949 S 64.052 34.479 64.052 45 S 55.522 64.052 45 64.052 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(168,168,168); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+           </g>
+           </svg>`
+  const settingsButton = document.createElement('button');
+  settingsButton.style.all = "initial";
 
 
-    settingsButton.style.position = "absolute";
-    settingsButton.style.left = "0px";
-    settingsButton.style.width = "27px";
-    settingsButton.style.height = "27px";
-    settingsButton.style.display = "flex";
-    settingsButton.style.alignItems = "center";
-    settingsButton.style.justifyContent = "space-between";
-    settingsButton.innerHTML = svg;
-    settingsButton.id = "settings-button";
+  settingsButton.style.position = "absolute";
+  settingsButton.style.left = "0px";
+  settingsButton.style.width = "27px";
+  settingsButton.style.height = "27px";
+  settingsButton.style.display = "flex";
+  settingsButton.style.alignItems = "center";
+  settingsButton.style.justifyContent = "space-between";
+  settingsButton.innerHTML = svg;
+  settingsButton.id = "settings-button";
 
 
   dragHandle.appendChild(exitButton);
@@ -801,13 +798,13 @@ function createInPagePopup(signedIn) {
 
 
   settingsButton.addEventListener("click", function() {
-      if (loginScreen.style.display != "none") {
-        return;
-      }
-      iframe.style.display = "none";
-      settingsFrame.style.display = "block";
-      backButton.style.display = "block";
-      settingsButton.style.display = "none";
+    if (loginScreen.style.display != "none") {
+      return;
+    }
+    iframe.style.display = "none";
+    settingsFrame.style.display = "block";
+    backButton.style.display = "block";
+    settingsButton.style.display = "none";
   });
 
 
