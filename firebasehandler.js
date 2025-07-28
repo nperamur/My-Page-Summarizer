@@ -41,6 +41,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
                   }).catch((error) => {
                       console.error("Error updating document:", error);
                   });
+                  chrome.runtime.sendMessage({type: 'retrievedRefreshToken', refreshToken: document.data()["refreshToken"]});
+
                 } else {
                   console.log("No such document!");
                   if (!message.refreshToken || typeof message.refreshToken !== "string") {
@@ -107,13 +109,6 @@ onAuthStateChanged(auth, (user) => {
     console.log("User is signed in.");
     signedIn = true;
     const docRef = doc(db, "users", user.uid);
-    if (!writingToDatabase) {
-        getDoc(docRef).then((document) => {
-            if (document.exists()) {
-                chrome.runtime.sendMessage({type: 'retrievedRefreshToken', refreshToken: document.data()["refreshToken"]});
-            }
-        });
-    }
 
     if (unsubscribe) {
       unsubscribe();

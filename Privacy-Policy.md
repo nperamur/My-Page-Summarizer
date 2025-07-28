@@ -1,6 +1,11 @@
 # My Page Summarizer Privacy Policy
 **Last Updated:** July 22, 2025
 
+
+Please read this Privacy Policy carefully before using the My Page Summarizer Chrome Extension ("the Extension", "we", "us", or "our").
+We recommend that you read this notice in full to ensure you are fully informed about the way we collect, use, store, or otherwise process your personal information.
+
+
 ---
 
 ## 1. Introduction
@@ -21,3 +26,6 @@ We do not use cookies or any other tracking technologies in this extension and h
 
 ## 4. No Sale of Personal Information
 We do not sell, trade, or rent your personal information to any third parties. However, please note that any content submitted through the chat is sent to the Google Gemini API, and is subject to [Google’s Terms of Service](https://ai.google.dev/gemini-api/terms) and [Privacy Policy](https://policies.google.com/privacy), which may include the use of submitted data for model improvement and other purposes.
+
+## 5. Data Retention
+Your user-provided Gemini API key is stored in our database until you choose to update it or switch back to the default internal key. Once you change or remove the key, the previous key is permanently deleted from our database. 
