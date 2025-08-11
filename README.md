@@ -1,3 +1,4 @@
+Link to Chrome Web Store Listing: 
 https://chromewebstore.google.com/detail/my-page-summarizer/bmcjppabanjojkjineokkolbobogkema?hl=en&authuser=0
 
 
